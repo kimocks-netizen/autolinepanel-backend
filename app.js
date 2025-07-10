@@ -21,5 +21,5 @@ app.use((err, req, res, next) => {
   res.status(500).json({ status: 'error', message: 'Something broke!' });
 });
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3002;
 app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));

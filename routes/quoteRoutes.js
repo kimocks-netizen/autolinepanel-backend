@@ -6,8 +6,6 @@ const authMiddleware = require('../middleware/auth');
 // Public routes
 router.post('/quotes', quoteController.submitQuote);
 
-// Admin routes (add auth middleware later)
-//router.get('/admin/quotes', quoteController.getAllQuotes);
 // Admin (Protected)
 router.get('/admin/quotes', authMiddleware, quoteController.getAllQuotes);
 
