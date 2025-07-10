@@ -1,0 +1,11 @@
+backend/
+├── controllers/
+│   └── quoteController.js
+├── routes/
+│   └── quoteRoutes.js
+├── models/
+│   └── supabaseModel.js
+├── app.js
+├── package.json
+├── package-lock.json
+└── .env
