@@ -7,7 +7,15 @@ const quoteRoutes = require('./routes/quoteRoutes');
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+    'https://autoline-frontend.vercel.app'
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: false // set to true only if using cookies/auth
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // For form data
 
