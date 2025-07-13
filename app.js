@@ -10,9 +10,12 @@ const app = express();
 app.use(cors({
   origin: [
     'http://localhost:5173',
-    'https://autoline-frontend.vercel.app'
+    'https://autoline-frontend.vercel.app',
+    'https://autolinepanel-backend-production.up.railway.app'
+
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: false // set to true only if using cookies/auth
 }));
 
