@@ -29,5 +29,14 @@ module.exports = {
       .eq('email', email)
       .single();
     return { data, error };
+  },
+    async updateQuoteStatus(id, status) {
+    const { data, error } = await supabase
+      .from('quotes')
+      .update({ status })
+      .eq('id', id)
+      .select('*');
+
+    return { data, error };
   }
 };

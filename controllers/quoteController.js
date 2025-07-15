@@ -28,20 +28,18 @@ module.exports = {
     }
 
     res.json({ status: 'success', data });
-  },// Add this to your quoteController.js
+  },
   async updateQuoteStatus(req, res) {
     const { id } = req.params;
     const { status } = req.body;
 
     if (!['Pending', 'Contacted', 'Completed'].includes(status)) {
-      return res.status(400).json({ status: 'error', message: 'Invalid status value' });
+      return res
+        .status(400)
+        .json({ status: 'error', message: 'Invalid status value' });
     }
-    //Model
-    const { data, error } = await supabase
-      .from('quotes')
-      .update({ status })
-      .eq('id', id)
-      .select('*');
+
+    const { data, error } = await supabaseModel.updateQuoteStatus(id, status);
 
     if (error) {
       return res.status(500).json({ status: 'error', message: error.message });
