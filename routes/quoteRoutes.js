@@ -8,5 +8,5 @@ router.post('/quotes', quoteController.submitQuote);
 
 // Admin (Protected)
 router.get('/admin/quotes', authMiddleware, quoteController.getAllQuotes);
-
+router.put('/admin/quotes/:id/status', authMiddleware, quoteController.updateQuoteStatus); 
 module.exports = router;

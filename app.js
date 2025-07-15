@@ -16,8 +16,9 @@ app.use(cors({
 
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true // set to true only if using cookies/auth
+  allowedHeaders: ['Content-Type', 'Authorization', 'Range'],
+  exposedHeaders: ['Content-Range', 'Content-Length', 'Content-Disposition'],
+  credentials: true
 }));
 
 app.use(express.json());
