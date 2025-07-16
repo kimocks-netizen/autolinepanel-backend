@@ -16,12 +16,14 @@ module.exports = {
       .select('*');
     return { data, error };
   },
-
   async getQuotes() {
-    const { data, error } = await supabase.from('quotes').select('*');
+    const { data, error } = await supabase
+      .from('quotes')
+      .select('*')
+      .order('created_at', { ascending: false }); // 🔁 sort DESCENDING (latest first)
+
     return { data, error };
   },
-
   async getAdminByEmail(email) {
     const { data, error } = await supabase
       .from('admins')
