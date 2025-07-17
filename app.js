@@ -12,7 +12,10 @@ app.use(cors({
   origin: [
     'http://localhost:5173',
     'https://autoline-frontend.vercel.app',
-    'https://autolinepanel-backend-production.up.railway.app'
+    'https://autolinepanel-backend-production.up.railway.app',
+    'https://autolinepanelshop.com',
+    'http://autolinepanelshop.com',
+    'https://www.autolinepanelshop.com'
 
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
