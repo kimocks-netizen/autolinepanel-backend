@@ -41,24 +41,64 @@ module.exports = {
 
     return { data, error };
   },
-  async createInvoice(invoiceData) {
-    const { data, error } = await supabase
+  async createInvoice(invoiceData, repairItems) {
+    // Start a transaction
+    const { data: invoice, error: invoiceError } = await supabase
       .from('invoices')
       .insert([invoiceData])
       .select('*');
-    return { data, error };
+
+    if (invoiceError) {
+      return { data: null, error: invoiceError };
+    }
+
+    // Create invoice items
+    if (repairItems && repairItems.length > 0) {
+      const itemsToInsert = repairItems.map(item => ({
+        invoice_id: invoice[0].id,
+        repair_type: item.repair_type,
+        description: item.description,
+        amount: parseFloat(item.amount) || 0
+      }));
+
+      const { error: itemsError } = await supabase
+        .from('invoice_items')
+        .insert(itemsToInsert);
+
+      if (itemsError) {
+        return { data: null, error: itemsError };
+      }
+    }
+
+    return { data: invoice, error: null };
   },
   async getInvoices() {
     const { data, error } = await supabase
       .from('invoices')
-      .select('*')
+      .select(`
+        *,
+        invoice_items (
+          id,
+          repair_type,
+          description,
+          amount
+        )
+      `)
       .order('created_at', { ascending: false });
     return { data, error };
   },
   async getInvoiceById(id) {
     const { data, error } = await supabase
       .from('invoices')
-      .select('*')
+      .select(`
+        *,
+        invoice_items (
+          id,
+          repair_type,
+          description,
+          amount
+        )
+      `)
       .eq('id', id)
       .single();
     return { data, error };

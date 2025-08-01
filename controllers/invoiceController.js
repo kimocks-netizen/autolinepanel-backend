@@ -12,7 +12,8 @@ module.exports = {
         repair_type,
         description,
         invoice_date,
-        total_amount
+        total_amount,
+        repair_items
       } = req.body;
 
       // Generate invoice number
@@ -31,7 +32,7 @@ module.exports = {
         total_amount: total_amount || 0
       };
 
-      const { data, error } = await supabaseModel.createInvoice(invoiceData);
+      const { data, error } = await supabaseModel.createInvoice(invoiceData, repair_items);
 
       if (error) {
         return res.status(500).json({ status: 'error', message: error.message });
