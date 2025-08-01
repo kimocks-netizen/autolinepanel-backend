@@ -12,8 +12,6 @@ module.exports = {
         repair_type,
         description,
         invoice_date,
-        subtotal,
-        vat_amount,
         total_amount
       } = req.body;
 
@@ -22,7 +20,7 @@ module.exports = {
 
       const invoiceData = {
         invoice_number,
-        quote_id,
+        quote_id: quote_id || null,
         customer_name,
         customer_phone,
         car_model,
@@ -30,8 +28,6 @@ module.exports = {
         repair_type,
         description,
         invoice_date: invoice_date || new Date().toISOString().split('T')[0],
-        subtotal: subtotal || 0,
-        vat_amount: vat_amount || 0,
         total_amount: total_amount || 0
       };
 
