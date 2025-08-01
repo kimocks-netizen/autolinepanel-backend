@@ -40,5 +40,55 @@ module.exports = {
       .select('*');
 
     return { data, error };
+  },
+  async createInvoice(invoiceData) {
+    const { data, error } = await supabase
+      .from('invoices')
+      .insert([invoiceData])
+      .select('*');
+    return { data, error };
+  },
+  async getInvoices() {
+    const { data, error } = await supabase
+      .from('invoices')
+      .select('*')
+      .order('created_at', { ascending: false });
+    return { data, error };
+  },
+  async getInvoiceById(id) {
+    const { data, error } = await supabase
+      .from('invoices')
+      .select('*')
+      .eq('id', id)
+      .single();
+    return { data, error };
+  },
+  async updateInvoice(id, updateData) {
+    const { data, error } = await supabase
+      .from('invoices')
+      .update({ ...updateData, updated_at: new Date() })
+      .eq('id', id)
+      .select('*');
+    return { data, error };
+  },
+  async generateInvoiceNumber() {
+    const { data, error } = await supabase
+      .from('invoices')
+      .select('invoice_number')
+      .order('created_at', { ascending: false })
+      .limit(1);
+    
+    if (error || !data || data.length === 0) {
+      return 'INV-001';
+    }
+    
+    const lastNumber = data[0].invoice_number;
+    const match = lastNumber.match(/INV-(\d+)/);
+    if (match) {
+      const nextNumber = parseInt(match[1]) + 1;
+      return `INV-${nextNumber.toString().padStart(3, '0')}`;
+    }
+    
+    return 'INV-001';
   }
 };

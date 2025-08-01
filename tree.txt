@@ -1,8 +1,12 @@
 backend/
 ├── controllers/
 │   └── quoteController.js
+│   └── autController.js
+├── middleware/
+│   └── auth.js
 ├── routes/
 │   └── quoteRoutes.js
+│   └── authRoutes.js
 ├── models/
 │   └── supabaseModel.js
 ├── app.js
