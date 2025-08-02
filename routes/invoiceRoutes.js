@@ -21,4 +21,7 @@ router.put('/invoices/:id', invoiceController.updateInvoice);
 // Convert document (invoice to quote or vice versa)
 router.post('/invoices/:id/convert', invoiceController.convertDocument);
 
+// Delete invoice
+router.delete('/invoices/:id', invoiceController.deleteInvoice);
+
 module.exports = router; 

@@ -128,5 +128,26 @@ module.exports = {
       console.error('Error converting document:', error);
       res.status(500).json({ status: 'error', message: 'Internal server error' });
     }
+  },
+
+  async deleteInvoice(req, res) {
+    try {
+      const { id } = req.params;
+
+      console.log('Deleting invoice:', { id });
+
+      const { error } = await supabaseModel.deleteInvoice(id);
+
+      if (error) {
+        console.error('Delete error:', error);
+        return res.status(500).json({ status: 'error', message: error.message });
+      }
+
+      console.log('Invoice deleted successfully');
+      res.json({ status: 'success', message: 'Invoice deleted successfully!' });
+    } catch (error) {
+      console.error('Error deleting invoice:', error);
+      res.status(500).json({ status: 'error', message: 'Internal server error' });
+    }
   }
 }; 

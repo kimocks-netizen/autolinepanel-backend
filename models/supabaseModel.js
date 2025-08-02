@@ -320,5 +320,34 @@ module.exports = {
     } catch (error) {
       return { data: null, error };
     }
+  },
+
+  async deleteInvoice(id) {
+    try {
+      // Delete invoice items first (due to foreign key constraint)
+      const { error: itemsError } = await supabase
+        .from('invoice_items')
+        .delete()
+        .eq('invoice_id', id);
+
+      if (itemsError) {
+        console.log('Invoice items deletion failed:', itemsError);
+        // Continue with invoice deletion even if items fail
+      }
+
+      // Delete the invoice
+      const { error: invoiceError } = await supabase
+        .from('invoices')
+        .delete()
+        .eq('id', id);
+
+      if (invoiceError) {
+        return { data: null, error: invoiceError };
+      }
+
+      return { data: null, error: null };
+    } catch (error) {
+      return { data: null, error };
+    }
   }
 };
