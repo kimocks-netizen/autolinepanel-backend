@@ -114,10 +114,17 @@ module.exports = {
         return res.status(400).json({ status: 'error', message: 'Invalid document type' });
       }
 
+      console.log('Calling supabaseModel.convertDocument...');
       const { data, error } = await supabaseModel.convertDocument(id, newType);
 
       if (error) {
         console.error('Conversion error:', error);
+        console.error('Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
         return res.status(500).json({ status: 'error', message: error.message });
       }
 
@@ -126,6 +133,7 @@ module.exports = {
       res.json({ status: 'success', message, data });
     } catch (error) {
       console.error('Error converting document:', error);
+      console.error('Full error object:', error);
       res.status(500).json({ status: 'error', message: 'Internal server error' });
     }
   },

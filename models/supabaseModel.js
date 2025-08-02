@@ -184,38 +184,13 @@ module.exports = {
     try {
       console.log('Starting conversion for document:', id, 'to type:', newType);
       
-      // Get the current document with invoice items
-      let currentDoc;
-      let fetchError;
-      
-      try {
-        const { data, error } = await supabase
-          .from('invoices')
-          .select(`
-            *,
-            invoice_items (
-              id,
-              repair_type,
-              description,
-              amount
-            )
-          `)
-          .eq('id', id)
-          .single();
-        
-        currentDoc = data;
-        fetchError = error;
-      } catch (error) {
-        // Fallback if invoice_items table doesn't exist yet
-        const { data, error: fallbackError } = await supabase
-          .from('invoices')
-          .select('*')
-          .eq('id', id)
-          .single();
-        
-        currentDoc = data;
-        fetchError = fallbackError;
-      }
+      // Get the current document (without invoice_items relationship)
+      console.log('Fetching current document...');
+      const { data: currentDoc, error: fetchError } = await supabase
+        .from('invoices')
+        .select('*')
+        .eq('id', id)
+        .single();
 
       if (fetchError) {
         console.error('Error fetching current document:', fetchError);
@@ -228,35 +203,14 @@ module.exports = {
       let existingConvertedDoc = null;
       if (currentDoc.original_invoice_id) {
         // Look for existing document with same original_invoice_id and target type
-        try {
-          const { data: existingDocs, error: existingError } = await supabase
-            .from('invoices')
-            .select(`
-              *,
-              invoice_items (
-                id,
-                repair_type,
-                description,
-                amount
-              )
-            `)
-            .eq('original_invoice_id', currentDoc.original_invoice_id)
-            .eq('document_type', newType);
+        const { data: existingDocs, error: existingError } = await supabase
+          .from('invoices')
+          .select('*')
+          .eq('original_invoice_id', currentDoc.original_invoice_id)
+          .eq('document_type', newType);
 
-          if (!existingError && existingDocs && existingDocs.length > 0) {
-            existingConvertedDoc = existingDocs[0];
-          }
-        } catch (error) {
-          // Fallback if invoice_items table doesn't exist yet
-          const { data: existingDocs, error: existingError } = await supabase
-            .from('invoices')
-            .select('*')
-            .eq('original_invoice_id', currentDoc.original_invoice_id)
-            .eq('document_type', newType);
-
-          if (!existingError && existingDocs && existingDocs.length > 0) {
-            existingConvertedDoc = existingDocs[0];
-          }
+        if (!existingError && existingDocs && existingDocs.length > 0) {
+          existingConvertedDoc = existingDocs[0];
         }
       } else {
         // Also check if this document itself is already the target type
@@ -266,7 +220,6 @@ module.exports = {
       }
 
       if (existingConvertedDoc) {
-        // The existingConvertedDoc already has invoice_items from the query above
         return { data: existingConvertedDoc, error: null };
       }
 
@@ -312,56 +265,10 @@ module.exports = {
         return { data: null, error: createError };
       }
 
-      // Copy invoice items to the new document
-      if (currentDoc.invoice_items && currentDoc.invoice_items.length > 0) {
-        try {
-          const itemsToInsert = currentDoc.invoice_items.map(item => ({
-            invoice_id: newDoc[0].id,
-            repair_type: item.repair_type,
-            description: item.description,
-            amount: parseFloat(item.amount) || 0
-          }));
-
-          const { error: itemsError } = await supabase
-            .from('invoice_items')
-            .insert(itemsToInsert);
-
-          if (itemsError) {
-            console.log('Invoice items copy failed, but document was created:', itemsError);
-            // Don't fail the whole operation if invoice_items table doesn't exist
-          }
-        } catch (error) {
-          console.log('Invoice items table might not exist yet:', error);
-          // Continue with document creation even if items fail
-        }
-      }
-
-      // Get the final document with invoice items
-      try {
-        const { data: finalDoc, error: finalError } = await supabase
-          .from('invoices')
-          .select(`
-            *,
-            invoice_items (
-              id,
-              repair_type,
-              description,
-              amount
-            )
-          `)
-          .eq('id', newDoc[0].id)
-          .single();
-
-        if (finalError) {
-          return { data: newDoc[0], error: null };
-        }
-
-        return { data: finalDoc, error: null };
-      } catch (error) {
-        // Fallback if invoice_items table doesn't exist yet
-        return { data: newDoc[0], error: null };
-      }
+      console.log('Document converted successfully:', newDoc[0]);
+      return { data: newDoc[0], error: null };
     } catch (error) {
+      console.error('Error in convertDocument:', error);
       return { data: null, error };
     }
   },
