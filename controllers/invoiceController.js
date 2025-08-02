@@ -13,11 +13,14 @@ module.exports = {
         description,
         invoice_date,
         total_amount,
-        repair_items
+        repair_items,
+        document_type = 'invoice'
       } = req.body;
 
-      // Generate invoice number
-      const invoice_number = await supabaseModel.generateInvoiceNumber();
+      // Generate document number based on type
+      const invoice_number = document_type === 'quote' 
+        ? await supabaseModel.generateQuoteNumber()
+        : await supabaseModel.generateInvoiceNumber();
 
       const invoiceData = {
         invoice_number,
@@ -29,7 +32,8 @@ module.exports = {
         repair_type,
         description,
         invoice_date: invoice_date || new Date().toISOString().split('T')[0],
-        total_amount: total_amount || 0
+        total_amount: total_amount || 0,
+        document_type
       };
 
       const { data, error } = await supabaseModel.createInvoice(invoiceData, repair_items);
@@ -38,9 +42,10 @@ module.exports = {
         return res.status(500).json({ status: 'error', message: error.message });
       }
 
-      res.json({ status: 'success', message: 'Invoice created successfully!', data: data[0] });
+      const message = document_type === 'quote' ? 'Quote created successfully!' : 'Invoice created successfully!';
+      res.json({ status: 'success', message, data: data[0] });
     } catch (error) {
-      console.error('Error creating invoice:', error);
+      console.error('Error creating document:', error);
       res.status(500).json({ status: 'error', message: 'Internal server error' });
     }
   },
@@ -94,6 +99,29 @@ module.exports = {
       res.json({ status: 'success', message: 'Invoice updated successfully!', data: data[0] });
     } catch (error) {
       console.error('Error updating invoice:', error);
+      res.status(500).json({ status: 'error', message: 'Internal server error' });
+    }
+  },
+
+  async convertDocument(req, res) {
+    try {
+      const { id } = req.params;
+      const { newType } = req.body; // 'invoice' or 'quote'
+
+      if (!['invoice', 'quote'].includes(newType)) {
+        return res.status(400).json({ status: 'error', message: 'Invalid document type' });
+      }
+
+      const { data, error } = await supabaseModel.convertDocument(id, newType);
+
+      if (error) {
+        return res.status(500).json({ status: 'error', message: error.message });
+      }
+
+      const message = newType === 'quote' ? 'Document converted to quote successfully!' : 'Document converted to invoice successfully!';
+      res.json({ status: 'success', message, data });
+    } catch (error) {
+      console.error('Error converting document:', error);
       res.status(500).json({ status: 'error', message: 'Internal server error' });
     }
   }
