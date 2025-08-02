@@ -244,7 +244,9 @@ module.exports = {
           original_invoice_id: currentDoc.original_invoice_id || currentDoc.id,
           converted_from_id: currentDoc.id,
           created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
+          description: '', // Clear the concatenated description
+          repair_type: '' // Clear the repair_type as it will be recalculated
         };
 
         delete newDocData.id;
