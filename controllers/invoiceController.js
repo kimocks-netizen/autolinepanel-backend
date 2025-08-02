@@ -108,6 +108,8 @@ module.exports = {
       const { id } = req.params;
       const { newType } = req.body; // 'invoice' or 'quote'
 
+      console.log('Converting document:', { id, newType });
+
       if (!['invoice', 'quote'].includes(newType)) {
         return res.status(400).json({ status: 'error', message: 'Invalid document type' });
       }
@@ -115,9 +117,11 @@ module.exports = {
       const { data, error } = await supabaseModel.convertDocument(id, newType);
 
       if (error) {
+        console.error('Conversion error:', error);
         return res.status(500).json({ status: 'error', message: error.message });
       }
 
+      console.log('Conversion successful:', { originalId: id, newData: data });
       const message = newType === 'quote' ? 'Document converted to quote successfully!' : 'Document converted to invoice successfully!';
       res.json({ status: 'success', message, data });
     } catch (error) {

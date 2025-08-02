@@ -140,6 +140,7 @@ module.exports = {
     const { data, error } = await supabase
       .from('invoices')
       .select('invoice_number')
+      .eq('document_type', 'invoice')
       .order('created_at', { ascending: false })
       .limit(1);
     
@@ -192,28 +193,65 @@ module.exports = {
         return { data: null, error: fetchError };
       }
 
-      // Generate new number based on type
-      const newNumber = newType === 'quote' ? await this.generateQuoteNumber() : await this.generateInvoiceNumber();
+      // Check if there's already a converted document of the target type
+      let existingConvertedDoc = null;
+      if (currentDoc.original_invoice_id) {
+        // Look for existing document with same original_invoice_id and target type
+        const { data: existingDocs, error: existingError } = await supabase
+          .from('invoices')
+          .select('*')
+          .eq('original_invoice_id', currentDoc.original_invoice_id)
+          .eq('document_type', newType);
 
-      // Create new document
-      const newDocData = {
-        ...currentDoc,
-        id: undefined, // Let it generate new ID
-        invoice_number: newNumber,
-        document_type: newType,
-        status: newType === 'quote' ? 'draft' : 'draft',
-        original_invoice_id: currentDoc.original_invoice_id || currentDoc.id,
-        converted_from_id: currentDoc.id,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
+        if (!existingError && existingDocs && existingDocs.length > 0) {
+          existingConvertedDoc = existingDocs[0];
+        }
+      } else {
+        // Also check if this document itself is already the target type
+        if (currentDoc.document_type === newType) {
+          return { data: currentDoc, error: null };
+        }
+      }
 
-      delete newDocData.id;
+      if (existingConvertedDoc) {
+        // Return the existing converted document
+        return { data: existingConvertedDoc, error: null };
+      }
 
-      const { data: newDoc, error: createError } = await supabase
-        .from('invoices')
-        .insert([newDocData])
-        .select('*');
+      // Generate new number based on type with retry mechanism
+      let newNumber;
+      let newDoc;
+      let createError;
+      let retryCount = 0;
+      const maxRetries = 3;
+
+      do {
+        newNumber = newType === 'quote' ? await this.generateQuoteNumber() : await this.generateInvoiceNumber();
+
+        // Create new document
+        const newDocData = {
+          ...currentDoc,
+          id: undefined, // Let it generate new ID
+          invoice_number: newNumber,
+          document_type: newType,
+          status: newType === 'quote' ? 'draft' : 'draft',
+          original_invoice_id: currentDoc.original_invoice_id || currentDoc.id,
+          converted_from_id: currentDoc.id,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+
+        delete newDocData.id;
+
+        const result = await supabase
+          .from('invoices')
+          .insert([newDocData])
+          .select('*');
+
+        newDoc = result.data;
+        createError = result.error;
+        retryCount++;
+      } while (createError && createError.message.includes('duplicate key') && retryCount < maxRetries);
 
       if (createError) {
         return { data: null, error: createError };
