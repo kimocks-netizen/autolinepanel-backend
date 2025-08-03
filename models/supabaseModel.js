@@ -223,6 +223,20 @@ module.exports = {
         return { data: existingConvertedDoc, error: null };
       }
 
+      // Fetch the current document's invoice items
+      console.log('Fetching invoice items for current document...');
+      const { data: currentInvoiceItems, error: itemsError } = await supabase
+        .from('invoice_items')
+        .select('*')
+        .eq('invoice_id', id);
+
+      if (itemsError) {
+        console.error('Error fetching invoice items:', itemsError);
+        // Continue with conversion even if items fail to fetch
+      }
+
+      console.log('Current invoice items:', currentInvoiceItems);
+
       // Generate new number based on type with retry mechanism
       let newNumber;
       let newDoc;
@@ -263,6 +277,31 @@ module.exports = {
 
       if (createError) {
         return { data: null, error: createError };
+      }
+
+      // Copy invoice items to the new document
+      if (currentInvoiceItems && currentInvoiceItems.length > 0) {
+        console.log('Copying invoice items to new document...');
+        const newInvoiceItems = currentInvoiceItems.map(item => ({
+          ...item,
+          id: undefined, // Let it generate new ID
+          invoice_id: newDoc[0].id,
+          created_at: new Date().toISOString()
+        }));
+
+        // Remove the id field from each item
+        newInvoiceItems.forEach(item => delete item.id);
+
+        const { error: copyItemsError } = await supabase
+          .from('invoice_items')
+          .insert(newInvoiceItems);
+
+        if (copyItemsError) {
+          console.error('Error copying invoice items:', copyItemsError);
+          // Continue even if items fail to copy
+        } else {
+          console.log('Invoice items copied successfully');
+        }
       }
 
       console.log('Document converted successfully:', newDoc[0]);
