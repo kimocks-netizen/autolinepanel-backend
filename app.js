@@ -15,6 +15,7 @@ app.use(cors({
     'http://localhost:5173',
     'https://autoline-frontend.vercel.app',
     'https://autolinepanel-backend-production.up.railway.app',
+    'https://autolinepanel-backend-staging.up.railway.app',
     'https://autolinepanelshop.com',
     'http://autolinepanelshop.com',
     'https://www.autolinepanelshop.com'
