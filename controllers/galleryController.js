@@ -119,6 +119,8 @@ module.exports = {
       const { imageType } = req.params; // 'before' or 'after'
       const { imageData, fileName } = req.body;
 
+      console.log('Upload request received:', { imageType, fileName, hasImageData: !!imageData });
+
       if (!imageData || !fileName) {
         return res.status(400).json({ status: 'error', message: 'Image data and filename are required' });
       }
@@ -127,13 +129,13 @@ module.exports = {
 
       if (error) {
         console.error('Error uploading gallery image:', error);
-        return res.status(500).json({ status: 'error', message: 'Failed to upload image' });
+        return res.status(500).json({ status: 'error', message: `Failed to upload image: ${error.message}` });
       }
 
       res.json({ status: 'success', message: 'Image uploaded successfully', data });
     } catch (error) {
       console.error('Error in uploadGalleryImage:', error);
-      res.status(500).json({ status: 'error', message: 'Internal server error' });
+      res.status(500).json({ status: 'error', message: `Internal server error: ${error.message}` });
     }
   }
 }; 

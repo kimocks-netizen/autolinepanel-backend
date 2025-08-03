@@ -432,14 +432,38 @@ module.exports = {
 
   async uploadGalleryImage(imageData, fileName, imageType) {
     try {
-      // Create gallery-images bucket if it doesn't exist
       const bucketName = 'gallery-images';
+      
+      // Convert base64 to buffer
+      const buffer = Buffer.from(imageData, 'base64');
+      
+      // Generate unique filename
+      const timestamp = Date.now();
+      const fileExtension = fileName.split('.').pop() || 'jpg';
+      const uniqueFileName = `${imageType}/${timestamp}-${fileName}`;
+      
+      // Check if bucket exists, if not create it
+      const { data: buckets } = await supabase.storage.listBuckets();
+      const bucketExists = buckets?.some(bucket => bucket.name === bucketName);
+      
+      if (!bucketExists) {
+        console.log('Creating gallery-images bucket...');
+        const { error: createBucketError } = await supabase.storage.createBucket(bucketName, {
+          public: true,
+          allowedMimeTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+        });
+        
+        if (createBucketError) {
+          console.error('Error creating bucket:', createBucketError);
+          return { data: null, error: createBucketError };
+        }
+      }
       
       // Upload to Supabase Storage
       const { data, error } = await supabase.storage
         .from(bucketName)
-        .upload(`${imageType}/${Date.now()}-${fileName}`, imageData, {
-          contentType: 'image/jpeg',
+        .upload(uniqueFileName, buffer, {
+          contentType: `image/${fileExtension}`,
           cacheControl: '3600'
         });
 
