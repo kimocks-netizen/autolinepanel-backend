@@ -69,6 +69,15 @@ module.exports = {
       const { id } = req.params;
       const { title, description, before_image_url, after_image_url, display_order, is_active } = req.body;
 
+      console.log('Update request received:', { 
+        id, 
+        title, 
+        is_active, 
+        is_active_type: typeof is_active,
+        display_order,
+        full_body: req.body 
+      });
+
       if (!title) {
         return res.status(400).json({ status: 'error', message: 'Title is required' });
       }
@@ -84,13 +93,20 @@ module.exports = {
 
       if (error) {
         console.error('Error updating gallery item:', error);
-        return res.status(500).json({ status: 'error', message: 'Failed to update gallery item' });
+        console.error('Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        return res.status(500).json({ status: 'error', message: `Failed to update gallery item: ${error.message}` });
       }
 
+      console.log('Gallery item updated successfully:', data);
       res.json({ status: 'success', message: 'Gallery item updated successfully', data });
     } catch (error) {
       console.error('Error in updateGalleryItem:', error);
-      res.status(500).json({ status: 'error', message: 'Internal server error' });
+      res.status(500).json({ status: 'error', message: `Internal server error: ${error.message}` });
     }
   },
 

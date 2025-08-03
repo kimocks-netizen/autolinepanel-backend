@@ -402,6 +402,8 @@ module.exports = {
 
   async updateGalleryItem(id, updateData) {
     try {
+      console.log('Updating gallery item:', { id, updateData });
+      
       const { data, error } = await supabase
         .from('gallery_items')
         .update({
@@ -411,8 +413,21 @@ module.exports = {
         .eq('id', id)
         .select('*');
 
+      if (error) {
+        console.error('Supabase update error:', error);
+        console.error('Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+      } else {
+        console.log('Gallery item updated successfully in database');
+      }
+
       return { data, error };
     } catch (error) {
+      console.error('Exception in updateGalleryItem:', error);
       return { data: null, error };
     }
   },
