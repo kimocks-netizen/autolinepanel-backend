@@ -4,6 +4,7 @@ const cors = require('cors');
 const authRoutes = require('./routes/authRoutes');
 const quoteRoutes = require('./routes/quoteRoutes');
 const invoiceRoutes = require('./routes/invoiceRoutes');
+const galleryRoutes = require('./routes/galleryRoutes');
 
 const app = express();
 
@@ -35,6 +36,7 @@ app.use(express.urlencoded({ extended: true })); // For form data
 app.use('/api', authRoutes);
 app.use('/api', quoteRoutes);
 app.use('/api/admin', invoiceRoutes);
+app.use('/api', galleryRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

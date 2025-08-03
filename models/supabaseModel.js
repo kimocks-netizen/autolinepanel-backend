@@ -339,5 +339,124 @@ module.exports = {
     } catch (error) {
       return { data: null, error };
     }
+  },
+
+  // Gallery functions
+  async getGalleryItems() {
+    try {
+      const { data, error } = await supabase
+        .from('gallery_items')
+        .select('*')
+        .eq('is_active', true)
+        .order('display_order', { ascending: true })
+        .order('created_at', { ascending: false });
+
+      return { data, error };
+    } catch (error) {
+      return { data: null, error };
+    }
+  },
+
+  async getAdminGalleryItems() {
+    try {
+      const { data, error } = await supabase
+        .from('gallery_items')
+        .select('*')
+        .order('display_order', { ascending: true })
+        .order('created_at', { ascending: false });
+
+      return { data, error };
+    } catch (error) {
+      return { data: null, error };
+    }
+  },
+
+  async createGalleryItem(galleryData) {
+    try {
+      // Get the next display order
+      const { data: existingItems } = await supabase
+        .from('gallery_items')
+        .select('display_order')
+        .order('display_order', { ascending: false })
+        .limit(1);
+
+      const nextOrder = existingItems && existingItems.length > 0 
+        ? (existingItems[0].display_order || 0) + 1 
+        : 0;
+
+      const { data, error } = await supabase
+        .from('gallery_items')
+        .insert([{
+          ...galleryData,
+          display_order: nextOrder,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }])
+        .select('*');
+
+      return { data, error };
+    } catch (error) {
+      return { data: null, error };
+    }
+  },
+
+  async updateGalleryItem(id, updateData) {
+    try {
+      const { data, error } = await supabase
+        .from('gallery_items')
+        .update({
+          ...updateData,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+        .select('*');
+
+      return { data, error };
+    } catch (error) {
+      return { data: null, error };
+    }
+  },
+
+  async deleteGalleryItem(id) {
+    try {
+      const { error } = await supabase
+        .from('gallery_items')
+        .delete()
+        .eq('id', id);
+
+      return { data: null, error };
+    } catch (error) {
+      return { data: null, error };
+    }
+  },
+
+  async uploadGalleryImage(imageData, fileName, imageType) {
+    try {
+      // Create gallery-images bucket if it doesn't exist
+      const bucketName = 'gallery-images';
+      
+      // Upload to Supabase Storage
+      const { data, error } = await supabase.storage
+        .from(bucketName)
+        .upload(`${imageType}/${Date.now()}-${fileName}`, imageData, {
+          contentType: 'image/jpeg',
+          cacheControl: '3600'
+        });
+
+      if (error) {
+        console.error('Storage upload error:', error);
+        return { data: null, error };
+      }
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from(bucketName)
+        .getPublicUrl(data.path);
+
+      return { data: { url: urlData.publicUrl, path: data.path }, error: null };
+    } catch (error) {
+      console.error('Error uploading gallery image:', error);
+      return { data: null, error };
+    }
   }
 };
