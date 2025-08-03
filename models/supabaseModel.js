@@ -430,57 +430,5 @@ module.exports = {
     }
   },
 
-  async uploadGalleryImage(imageData, fileName, imageType) {
-    try {
-      const bucketName = 'gallery-images';
-      
-      // Convert base64 to buffer
-      const buffer = Buffer.from(imageData, 'base64');
-      
-      // Generate unique filename
-      const timestamp = Date.now();
-      const fileExtension = fileName.split('.').pop() || 'jpg';
-      const uniqueFileName = `${imageType}/${timestamp}-${fileName}`;
-      
-      // Check if bucket exists, if not create it
-      const { data: buckets } = await supabase.storage.listBuckets();
-      const bucketExists = buckets?.some(bucket => bucket.name === bucketName);
-      
-      if (!bucketExists) {
-        console.log('Creating gallery-images bucket...');
-        const { error: createBucketError } = await supabase.storage.createBucket(bucketName, {
-          public: true,
-          allowedMimeTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
-        });
-        
-        if (createBucketError) {
-          console.error('Error creating bucket:', createBucketError);
-          return { data: null, error: createBucketError };
-        }
-      }
-      
-      // Upload to Supabase Storage
-      const { data, error } = await supabase.storage
-        .from(bucketName)
-        .upload(uniqueFileName, buffer, {
-          contentType: `image/${fileExtension}`,
-          cacheControl: '3600'
-        });
 
-      if (error) {
-        console.error('Storage upload error:', error);
-        return { data: null, error };
-      }
-
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from(bucketName)
-        .getPublicUrl(data.path);
-
-      return { data: { url: urlData.publicUrl, path: data.path }, error: null };
-    } catch (error) {
-      console.error('Error uploading gallery image:', error);
-      return { data: null, error };
-    }
-  }
 };
