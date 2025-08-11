@@ -2,13 +2,12 @@
   "name": "backend-panelbeaters",
   "version": "1.0.0",
   "main": "app.js",
-  "scripts": {
-    "start": "node app.js",
-    "dev": "nodemon app.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "vercel-dev": "vercel dev",
-    "vercel-build": "vercel build"
-  },
+"scripts": {
+  "start": "node app.js",
+  "dev": "nodemon app.js",
+  "build": "echo 'Skipping build - this is a Node.js project'",
+  "vercel-build": "npm install --production && npm prune"
+},
   "dependencies": {
     "@supabase/supabase-js": "^2.50.4",
     "bcryptjs": "^2.4.3",
