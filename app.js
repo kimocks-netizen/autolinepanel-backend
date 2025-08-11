@@ -9,7 +9,6 @@ const galleryRoutes = require('./routes/galleryRoutes');
 const app = express();
 
 // Middleware
-// Middleware
 app.use(cors({
   origin: [
     'http://localhost:5173',
@@ -19,7 +18,6 @@ app.use(cors({
     'https://autolinepanelshop.com',
     'http://autolinepanelshop.com',
     'https://www.autolinepanelshop.com'
-
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Range'],
@@ -29,9 +27,6 @@ app.use(cors({
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-app.use(express.json());
-app.use(express.urlencoded({ extended: true })); // For form data
 
 // Routes
 app.use('/api', authRoutes);
@@ -45,5 +40,11 @@ app.use((err, req, res, next) => {
   res.status(500).json({ status: 'error', message: 'Something broke!' });
 });
 
-const PORT = process.env.PORT || 3002;
-app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
+// Export the app for Vercel
+module.exports = app;
+
+// Only listen in development
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 3002;
+  app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
+}
