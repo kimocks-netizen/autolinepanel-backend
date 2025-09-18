@@ -1,9 +1,20 @@
 // models/supabaseModel.js
 const { createClient } = require('@supabase/supabase-js');
 
+// Use service key for backend operations (elevated permissions)
+const supabaseKey = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_KEY;
+
+// Debug logging in development
+if (process.env.NODE_ENV !== 'production') {
+  console.log('Supabase Backend Config:');
+  console.log('- URL:', process.env.SUPABASE_URL ? 'SET' : 'NOT SET');
+  console.log('- Service Key:', process.env.SUPABASE_SERVICE_KEY ? 'USING SERVICE KEY' : 'USING ANON KEY');
+  console.log('- Key type:', supabaseKey?.includes('service_role') ? 'SERVICE' : 'ANON');
+}
+
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_KEY
+  supabaseKey
 );
 
 module.exports = {
