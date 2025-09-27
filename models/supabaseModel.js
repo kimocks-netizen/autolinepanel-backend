@@ -445,5 +445,109 @@ module.exports = {
     }
   },
 
+  // Services functions
+  async getServices() {
+    try {
+      const { data, error } = await supabase
+        .from('services')
+        .select('*')
+        .eq('is_active', true)
+        .order('display_order', { ascending: true })
+        .order('created_at', { ascending: false });
+
+      return { data, error };
+    } catch (error) {
+      return { data: null, error };
+    }
+  },
+
+  async getAdminServices() {
+    try {
+      const { data, error } = await supabase
+        .from('services')
+        .select('*')
+        .order('display_order', { ascending: true })
+        .order('created_at', { ascending: false });
+
+      return { data, error };
+    } catch (error) {
+      return { data: null, error };
+    }
+  },
+
+  async createService(serviceData) {
+    try {
+      // Get the next display order
+      const { data: existingServices } = await supabase
+        .from('services')
+        .select('display_order')
+        .order('display_order', { ascending: false })
+        .limit(1);
+
+      const nextOrder = existingServices && existingServices.length > 0 
+        ? (existingServices[0].display_order || 0) + 1 
+        : 0;
+
+      const { data, error } = await supabase
+        .from('services')
+        .insert([{
+          ...serviceData,
+          display_order: nextOrder,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }])
+        .select('*');
+
+      return { data, error };
+    } catch (error) {
+      return { data: null, error };
+    }
+  },
+
+  async updateService(id, updateData) {
+    try {
+      console.log('Updating service:', { id, updateData });
+      
+      const { data, error } = await supabase
+        .from('services')
+        .update({
+          ...updateData,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+        .select('*');
+
+      if (error) {
+        console.error('Supabase update error:', error);
+        console.error('Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+      } else {
+        console.log('Service updated successfully in database');
+      }
+
+      return { data, error };
+    } catch (error) {
+      console.error('Exception in updateService:', error);
+      return { data: null, error };
+    }
+  },
+
+  async deleteService(id) {
+    try {
+      const { error } = await supabase
+        .from('services')
+        .delete()
+        .eq('id', id);
+
+      return { data: null, error };
+    } catch (error) {
+      return { data: null, error };
+    }
+  },
+
 
 };

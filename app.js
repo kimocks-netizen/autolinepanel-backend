@@ -5,6 +5,7 @@ const authRoutes = require('./routes/authRoutes');
 const quoteRoutes = require('./routes/quoteRoutes');
 const invoiceRoutes = require('./routes/invoiceRoutes');
 const galleryRoutes = require('./routes/galleryRoutes');
+const servicesRoutes = require('./routes/servicesRoutes');
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use('/api', authRoutes);
 app.use('/api', quoteRoutes);
 app.use('/api/admin', invoiceRoutes);
 app.use('/api', galleryRoutes);
+app.use('/api', servicesRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
